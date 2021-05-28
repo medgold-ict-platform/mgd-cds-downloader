@@ -1,0 +1,26 @@
+functions:
+  firststep:
+    name: ${self:provider.stage}-${self:provider.project}-${self:provider.stackTags.Name}-${self:provider.stackTags.Role}
+    environment:
+      LD_LIBRARY_PATH: "/lib64:/usr/lib64:/var/runtime:/var/runtime/lib:/var/task:/var/task/lib:/opt/lib:/opt/pyt$"
+      username: "*******"
+      password: "*******"
+      login_url: "https://cds.climate.copernicus.eu/user/login?destination=/%23%21/home"
+      filesupdate_table: "dev-mgd-ict-platform-era5-cds-downloader-archive"
+      BUCKET_NAME:  "*******"
+      FIRST_BUCKET_PATH: "era5/raw/"
+      SECOND_BUCKET_PATH: "era5/p/"
+      container_name: "${self:provider.stage}-${self:provider.project}-horta-wf-container"
+      cluster_name: ${self:custom.clusterName}
+      task_definition: 
+        Ref: taskDefinition
+      container: "${self:provider.stage}-${self:provider.project}-pbdm-wf-container"
+      subnets: "${self:custom.subnets}"
+      SecurityGroups: "${self:custom.SecurityGroups}"
+    handler: module/worker.launch
+    timeout: 30
+    events:
+      - schedule:
+          rate: cron(5 12 14 * ? *)
+          enabled: true
+    role: lambdarole

@@ -1,0 +1,31 @@
+{
+  "version": "2.0",
+  "app_name": "download-file-from-CDS",
+  "lambda_memory_size": 256,
+  "environment_variables":{
+    "LD_LIBRARY_PATH": "/lib64:/usr/lib64:/var/runtime:/var/runtime/lib:/var/task:/var/task/lib:/opt/lib:/opt/pyt$",
+    "username": "*******",
+    "password":"*******",
+    "login_url":"https://cds.climate.copernicus.eu/user/login?destination=/%23%21/home",
+    "second_lambda_arn": "arn:aws:lambda:eu-west-1:284176251738:function:download-file-from-CDS-dev-download_files",
+    "first_lambda_arn": "arn:aws:lambda:eu-west-1:284176251738:function:download-file-from-CDS-dev-check_pending_request",
+    "filesupdate_table":"dev-medgold-files-update",
+    "BUCKET_NAME":"*******",
+    "FIRST_BUCKET_PATH":"ecmwf/raw/"
+  },
+  "stages": {
+    "dev": {
+      "autogen_policy": false,
+      "iam_policy_file":"policy.json",
+      "lambda_functions": {
+        "download_files": {
+          "lambda_timeout": 900
+        },
+        "check_pending_request": {
+          "lambda_timeout": 900
+        }
+      }
+    }
+  }
+}
+

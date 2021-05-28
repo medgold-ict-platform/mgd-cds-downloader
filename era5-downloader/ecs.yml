@@ -1,0 +1,42 @@
+Resources:
+  cluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: ${self:custom.clusterName}
+  
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: "${self:provider.stage}-${self:provider.project}-horta-wf-log-group"
+      RetentionInDays: 30 
+
+  taskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties: 
+      ContainerDefinitions: 
+        - Name: "${self:provider.stage}-${self:provider.project}-horta-wf-container"
+          Cpu: 1
+          Essential: true
+          Image: "#{AWS::AccountId}.dkr.ecr.${self:provider.region}.amazonaws.com/${self:provider.stage}-${self:provider.project}-horta-wf-worker-image:latest"
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: "${self:provider.stage}-${self:provider.project}-horta-wf-log-group"
+              awslogs-region: ${self:provider.region}
+              awslogs-stream-prefix: "${file(serverless.yml):custom.task_definition}"
+      Cpu: "2048"
+      ExecutionRoleArn:       
+        Fn::GetAtt: [ecsTaskExecutionRole, Arn]
+      TaskRoleArn:       
+        Fn::GetAtt: [ecsTaskExecutionRole, Arn]
+      Family: "${file(serverless.yml):custom.task_definition}"
+      Memory: "8GB"
+      NetworkMode: "awsvpc"
+      RequiresCompatibilities: 
+        - FARGATE
+
+  ecr:
+    Type: AWS::ECR::Repository
+    Properties: 
+      RepositoryName: ${self:provider.stage}-${self:provider.project}-horta-wf-worker-image
+  

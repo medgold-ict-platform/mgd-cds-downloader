@@ -1,0 +1,124 @@
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties: 
+      CidrBlock: "10.4.0.0/16"
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      InstanceTenancy: default
+      Tags: 
+       - Key: Name
+         Value: ${self:provider.stage}-${self:provider.project}-horta-wf-vpc
+
+  Subnet:
+    Type: AWS::EC2::Subnet
+    Properties: 
+      AvailabilityZone: "${self:provider.region}a"
+      CidrBlock: "10.4.1.0/24"
+      VpcId: 
+        Ref: VPC
+      Tags: 
+       - Key: Name
+         Value: ${self:provider.stage}-${self:provider.project}-horta-wf-subnet
+
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: String
+      GroupName: ${self:provider.stage}-${self:provider.project}-horta-wf-sg
+      SecurityGroupIngress: 
+        - CidrIp: 0.0.0.0/0
+          FromPort: 80
+          ToPort: 80
+          IpProtocol: tcp
+        - CidrIpv6: ::/0
+          FromPort: 80
+          ToPort: 80
+          IpProtocol: tcp
+      VpcId: 
+        Ref: VPC
+      Tags: 
+       - Key: Name
+         Value: ${self:provider.stage}-${self:provider.project}-horta-wf-sg
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties: 
+      Tags: 
+       - Key: Name
+         Value:  ${self:provider.stage}-${self:provider.project}-horta-wf-ig
+  
+  IGatewayAttachment:  
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties: 
+      InternetGatewayId: 
+        Ref: InternetGateway
+      VpcId: 
+        Ref: VPC
+
+  Route:
+    Type: AWS::EC2::Route
+    Properties: 
+      DestinationCidrBlock: 0.0.0.0/0      
+      GatewayId: 
+        Ref: InternetGateway
+      RouteTableId: 
+        Ref: RouteTable
+
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties: 
+      Tags: 
+        - Key: Name
+          Value: ${self:provider.stage}-${self:provider.project}-pbdm-wf-rt
+      VpcId: 
+        Ref: VPC
+
+  SubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId: 
+        Ref: RouteTable
+      SubnetId: 
+        Ref: Subnet
+
+
+  # SecurityGroupEFS:
+  #   Type: AWS::EC2::SecurityGroup
+  #   Properties: 
+  #     GroupDescription: "EFS security group"
+  #     GroupName: ${self:provider.stage}-${self:provider.project}-horta-wf-efs-sg
+  #     SecurityGroupIngress: 
+  #       - IpProtocol: tcp
+  #         FromPort: 2049
+  #         ToPort: 2049
+  #         SourceSecurityGroupId: 
+  #           Ref: SecurityGroup
+  #     VpcId:
+  #       Ref: VPC
+  #     Tags: 
+  #       - Key: Name
+  #         Value: ${self:provider.stage}-${self:provider.project}-horta-wf-efs-sg
+
+  # FileSystem:
+  #   Type: AWS::EFS::FileSystem
+  #   Properties: 
+  #     FileSystemTags:
+  #     - Key: Name
+  #       Value: ${self:provider.stage}-${self:provider.project}-horta-wf-efs
+
+  # MountTarget:
+  #   Type: AWS::EFS::MountTarget
+  #   Properties:
+  #     FileSystemId: 
+  #       Ref: FileSystem
+  #     SecurityGroups:
+  #       [Ref: SecurityGroupEFS]
+  #     SubnetId:
+  #       Ref: Subnet
+  
+  # AccessPoint:
+  #   Type: AWS::EFS::AccessPoint
+  #   Properties: 
+  #     FileSystemId: 
+  #       Ref: FileSystem

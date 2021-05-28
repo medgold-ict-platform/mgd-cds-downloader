@@ -1,0 +1,52 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "DescribeQueryScanBooksTable",
+            "Effect": "Allow",
+            "Action": [
+                "dynamodb:DescribeTable",
+                "dynamodb:Query",
+                "dynamodb:Scan",
+                "dynamodb:PutItem"
+            ],
+            "Resource": "arn:aws:dynamodb:eu-west-1:284176251738:table/dev-medgold-files-update"
+        },
+        {
+            "Sid": "VisualEditor2",
+            "Effect": "Allow",
+            "Action": "logs:*",
+            "Resource": "arn:aws:logs:*:*:*"
+        },
+        {
+            "Sid": "S3",
+            "Effect": "Allow",
+            "Action": [
+                "logs:CreateLogStream",
+                "s3:*",
+                "logs:PutLogEvents"
+            ],
+            "Resource": [
+                "arn:aws:s3:::data.med-gold.eu",
+                "arn:aws:s3:::*/*",
+                "arn:aws:logs:*:*:*"
+            ]
+        },{
+            "Sid": "Events",
+            "Effect": "Allow",
+            "Action": [
+                "events:Put*",
+                "events:DisableRule*",
+                "events:EnableRule*",
+                "events:PutTargets",
+                "iam:PassRole"
+            ],
+            "Resource": [
+                "arn:aws:events:eu-west-1:284176251738:rule/mgd-cds-download-files-every_day",
+                "arn:aws:events:eu-west-1:284176251738:rule/mgd-cds-queued-requests",
+                "arn:aws:iam::284176251738:role/*",
+                "arn:aws:events:eu-west-1:284176251738:rule/*"
+            ]
+        }
+    ]
+}

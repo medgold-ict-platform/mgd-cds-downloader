@@ -1,0 +1,88 @@
+resources: 
+  Resources:
+    lambdarole:
+      Type: AWS::IAM::Role
+      Properties:
+        Path: /my/default/path/
+        RoleName: "${self:provider.stage}-${self:provider.project}-${self:provider.stackTags.Name}-${self:provider.stackTags.Role}-role"
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: era5-cds-downloader-role
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                    - ecs:RunTask
+                    - iam:PassRole
+                  Resource: 
+                    - "arn:aws:logs:*:*:*"
+                    - "arn:aws:ecs:eu-west-1:284176251738:task-definition/dev-mgd-ict-platform-horta-task-definition:*"
+                    - "arn:aws:iam::284176251738:role/dev-mgd-ict-platform-horta-ecsTaskExecutionRole"
+
+    ecsTaskExecutionRole:
+      Type: AWS::IAM::Role
+      Properties:
+          RoleName: "${self:provider.stage}-${self:provider.project}-horta-ecsTaskExecutionRole"
+          AssumeRolePolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                  -   Effect: Allow
+                      Principal:
+                          Service:
+                              - lambda.amazonaws.com
+                              - ecs-tasks.amazonaws.com
+                              - ec2.amazonaws.com
+                      Action: sts:AssumeRole
+          ManagedPolicyArns:
+              -   arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+          Policies:
+              -   PolicyName: ${self:provider.stage}-${self:provider.project}-horta-ecsTaskExecutionPolicy
+                  PolicyDocument:
+                      Version: '2012-10-17'
+                      Statement:
+                          -   Effect: Allow
+                              Action:
+                                  - "s3:PutObject"
+                                  - "s3:ListBucket"
+                                  - "s3:PutObjectAcl"
+                                  - "s3:GetObject"
+                              Resource:
+                                  - "arn:aws:s3:::${self:custom.BUCKET_NAME}"
+                                  - "arn:aws:s3:::*/*"
+
+                          -   Effect: Allow
+                              Action:
+                                  - "logs:CreateLogGroup"
+                                  - "logs:CreateLogStream"
+                                  - "logs:PutLogEvents"
+                              Resource: "*"
+                          -   Effect: Allow    
+                              Action:
+                                  - s3:ListBucket
+                                  - s3:GetObject
+                                  - s3:GetObjectAcl
+                                  - s3:PutObject
+                                  - s3:PutObjectAcl
+                                  - logs:CreateLogGroup
+                                  - logs:CreateLogStream
+                                  - logs:PutLogEvents
+                                  - dynamodb:DescribeTable
+                                  - dynamodb:Query
+                                  - dynamodb:Scan
+                                  - dynamodb:PutItem
+                              Resource: 
+                                  - "arn:aws:s3:::${self:custom.BUCKET_NAME}/*"
+                                  - "arn:aws:s3:::${self:custom.BUCKET_NAME}"
+                                  - "arn:aws:logs:*:*:*"
+                                  - "arn:aws:dynamodb:eu-west-1:284176251738:table/dev-mgd-ict-platform-era5-cds-downloader-archive"

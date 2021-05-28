@@ -1,0 +1,38 @@
+app: mgd-ict-platform-cds-downloader-app
+service: mgd-ict-platform-era5-cds-downloader
+
+plugins:
+  - serverless-pseudo-parameters
+  - serverless-python-requirements
+
+package:
+  individually: true
+
+provider:
+  name: aws
+  runtime: python3.7
+  region: eu-west-1
+  project: mgd-ict-platform
+  stage: ${opt:stage, 'dev'}
+  stackTags:
+    Name: cds-downloader
+    Environment: dev
+    Role: era5
+
+custom:
+  pythonRequirements:
+    invalidateCaches: true
+  BUCKET_NAME: "*******"
+  clusterName: ${self:provider.stage}-${self:provider.project}-cds-era5-cluster
+  task_definition: "${self:provider.stage}-${self:provider.project}-horta-task-definition"
+  subnets: 
+    Ref: Subnet
+  SecurityGroups: 
+    Ref: SecurityGroup
+  
+functions: ${file(functions.yml):functions}
+
+resources: 
+  - ${file(iam-roles.yml):resources}
+  - ${file(vpc.yml)}
+  - ${file(ecs.yml)}
